@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#17202a">
+<link rel="manifest" href="manifest.json">
+<title>My Learning Library</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,Arial;background:#f4f6f8;color:#17202a}
+header{background:#17202a;color:white;padding:20px 16px}main{max-width:900px;margin:auto;padding:16px}
+h1{margin:0;font-size:24px}header p{margin:5px 0 0;color:#cbd5e1}
+.panel{background:white;border-radius:16px;padding:16px;margin-bottom:16px;box-shadow:0 2px 12px #0001}
+input,select,button{font:inherit}input,select{width:100%;padding:12px;border:1px solid #ccd3da;border-radius:10px;margin:7px 0 12px}
+input[type=file]{padding:9px;background:#f8fafc}
+button{border:0;border-radius:10px;padding:12px 16px;background:#2563eb;color:white;font-weight:600}
+button.danger{background:#dc2626}.preview{display:none;width:100%;max-height:280px;object-fit:contain;border-radius:10px;margin:8px 0 12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.card{background:white;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px #0001}.card img{width:100%;height:180px;object-fit:cover;display:block}
+.body{padding:14px}.body h3{margin:0 0 5px}.body small{color:#667085}.body button{margin-top:10px}
+.empty{text-align:center;color:#667085;padding:35px}.viewer{display:none;position:fixed;inset:0;background:#000e;z-index:20;align-items:center;justify-content:center;padding:15px}
+.viewer img{max-width:96%;max-height:90%;object-fit:contain}.close{position:absolute;top:8px;right:18px;color:white;font-size:40px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:500px){.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><main><h1>📚 My Learning Library</h1><p>Save screenshots of everything you learn.</p></main></header>
+<main>
+<section class="panel">
+<h2>Add learning</h2>
+<label>What did you learn?</label>
+<input id="title" placeholder="e.g. ETF NAV and AP arbitrage">
+<div class="row">
+<div><label>Category</label><select id="category"><option>Programming</option><option>Finance</option><option>AI</option><option>Trading</option><option>Other</option></select></div>
+<div><label>Screenshot</label><input id="photo" type="file" accept="image/*"></div>
+</div>
+<img id="preview" class="preview">
+<button id="save">➕ Save screenshot</button>
+</section>
+
+<section class="panel">
+<input id="search" placeholder="🔎 Search your learning...">
+<select id="filter"><option value="">All categories</option><option>Programming</option><option>Finance</option><option>AI</option><option>Trading</option><option>Other</option></select>
+</section>
+
+<div id="grid" class="grid"></div>
+</main>
+
+<div id="viewer" class="viewer"><div class="close" id="close">×</div><img id="big"></div>
+
+<script>
+const DB="learning-library-v1";
+let db, items=[];
+const openReq=indexedDB.open(DB,1);
+openReq.onupgradeneeded=e=>e.target.result.createObjectStore("items",{keyPath:"id",autoIncrement:true});
+openReq.onsuccess=e=>{db=e.target.result;load()};
+function store(mode="readonly"){return db.transaction("items",mode).objectStore("items")}
+function load(){store().getAll().onsuccess=e=>{items=e.target.result.sort((a,b)=>b.id-a.id);render()}}
+const photo=document.querySelector("#photo"), preview=document.querySelector("#preview");
+photo.onchange=()=>{let f=photo.files[0];if(f){preview.src=URL.createObjectURL(f);preview.style.display="block"}};
+document.querySelector("#save").onclick=()=>{
+ const title=document.querySelector("#title").value.trim(), file=photo.files[0];
+ if(!title||!file){alert("Enter a name and choose a screenshot.");return}
+ const r=new FileReader();
+ r.onload=()=>{store("readwrite").add({title,category:document.querySelector("#category").value,image:r.result,date:new Date().toLocaleDateString()}).onsuccess=()=>{document.querySelector("#title").value="";photo.value="";preview.style.display="none";load()}};
+ r.readAsDataURL(file);
+};
+function render(){
+ const q=document.querySelector("#search").value.toLowerCase(), f=document.querySelector("#filter").value;
+ const a=items.filter(x=>(!q||x.title.toLowerCase().includes(q))&&(!f||x.category===f));
+ const grid=document.querySelector("#grid");
+ if(!a.length){grid.innerHTML='<div class="empty">No learning screenshots yet.</div>';return}
+ grid.innerHTML=a.map(x=>`<article class="card"><img src="${x.image}" data-view="${x.id}"><div class="body"><h3>${esc(x.title)}</h3><small>${esc(x.category)} • ${esc(x.date)}</small><br><button class="danger" data-delete="${x.id}">Delete</button></div></article>`).join("");
+}
+document.querySelector("#search").oninput=render;document.querySelector("#filter").onchange=render;
+document.querySelector("#grid").onclick=e=>{
+ const img=e.target.closest("[data-view]"), del=e.target.closest("[data-delete]");
+ if(img){const x=items.find(i=>i.id==img.dataset.view);document.querySelector("#big").src=x.image;document.querySelector("#viewer").style.display="flex"}
+ if(del){store("readwrite").delete(Number(del.dataset.delete)).onsuccess=load}
+};
+document.querySelector("#close").onclick=()=>document.querySelector("#viewer").style.display="none";
+function esc(s){let d=document.createElement("div");d.textContent=s;return d.innerHTML}
+</script>
+</body>
+</html>
