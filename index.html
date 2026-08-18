@@ -1,114 +1,42 @@
-<!doctype html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#17202a"><title>My Learning Library</title>
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:system-ui,Arial;background:#f4f6f8;color:#17202a}
-header{background:#17202a;color:#fff;padding:20px 16px}main{max-width:900px;margin:auto;padding:16px}
-h1{margin:0;font-size:24px}header p{margin:5px 0;color:#cbd5e1}
-.panel,.card,.modalbox{background:#fff;border-radius:16px;box-shadow:0 2px 12px #0001}.panel{padding:16px;margin-bottom:16px}
-input,select,button{font:inherit}input,select{width:100%;padding:12px;border:1px solid #ccd3da;border-radius:10px;margin:7px 0 12px}
-input[type=file]{padding:9px;background:#f8fafc}button{border:0;border-radius:10px;padding:11px 14px;background:#2563eb;color:white;font-weight:600;margin:3px}
-.danger{background:#dc2626}.secondary{background:#475569}.preview{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0 12px}
-.preview img{width:100%;height:100px;object-fit:cover;border-radius:8px}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
-.card{overflow:hidden}.thumbs{display:grid;grid-template-columns:repeat(2,1fr);gap:2px}.thumbs img{width:100%;height:120px;object-fit:cover}
-.body{padding:14px}.body h3{margin:0 0 5px}.body small{color:#667085}.actions{margin-top:8px}
-.empty{text-align:center;color:#667085;padding:35px}.viewer,.modal{display:none;position:fixed;inset:0;background:#000d;z-index:20;align-items:center;justify-content:center;padding:15px}
-.viewer img{max-width:94%;max-height:78%;object-fit:contain}.close{position:absolute;top:10px;right:10px;color:white;background:transparent;border:0;font-size:44px;line-height:1;z-index:100;cursor:pointer;padding:8px 14px;display:block;pointer-events:auto}
-.nav{position:absolute;bottom:18px;display:flex;gap:8px}.count{position:absolute;bottom:65px;color:white}
-.modal{z-index:30}.modalbox{padding:18px;width:min(600px,100%);max-height:90vh;overflow:auto}.modalbox h2{margin-top:0}
-.editgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.edititem img{width:100%;height:90px;object-fit:cover;border-radius:8px}
-</style></head>
-<body>
-<header><main><h1>📚 My Learning Library</h1><p>Save, edit and build your learning topics.</p></main></header>
-<main>
-<section class="panel"><h2>Add learning</h2>
-<input id="title" placeholder="e.g. ETF NAV and AP arbitrage">
-<select id="category"><option>Programming</option><option>Finance</option><option>AI</option><option>Trading</option><option>Other</option></select>
-<label><b>Select screenshots — multiple allowed</b></label>
-<input id="photos" type="file" accept="image/*" multiple>
-<div id="preview" class="preview"></div><button id="save">➕ Save learning</button></section>
-<section class="panel"><input id="search" placeholder="🔎 Search your learning..."><select id="filter"><option value="">All categories</option><option>Programming</option><option>Finance</option><option>AI</option><option>Trading</option><option>Other</option></select></section>
-<div id="grid" class="grid"></div></main>
+body{margin:0;font-family:system-ui;background:#f4f6f8;color:#17202a}header{background:#17202a;color:white;padding:18px}main{max-width:900px;margin:auto;padding:15px}
+.panel,.card,.box{background:white;border-radius:15px;padding:15px;margin-bottom:15px;box-shadow:0 2px 10px #0001}input,select,textarea,button{font:inherit}input,select,textarea{width:100%;padding:11px;margin:6px 0 12px;border:1px solid #ccd3da;border-radius:9px;box-sizing:border-box}textarea{min-height:100px}
+button{background:#2563eb;color:white;border:0;border-radius:9px;padding:10px 13px;margin:3px;font-weight:600}.gray{background:#475569}.red{background:#dc2626}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:15px}.card{padding:0;overflow:hidden}.body{padding:13px}.thumbs{display:grid;grid-template-columns:repeat(2,1fr);gap:2px}.thumbs img{width:100%;height:115px;object-fit:cover}
+.lesson{border:1px solid #ddd;border-radius:11px;padding:11px;margin:9px 0}.lesson p{white-space:pre-wrap}.pics{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}.pics img{width:100%;height:75px;object-fit:cover;border-radius:6px}
+.modal,.viewer{display:none;position:fixed;inset:0;background:#000b;z-index:10;align-items:center;justify-content:center;padding:15px}.box{width:min(650px,100%);max-height:90vh;overflow:auto}.viewer img{max-width:94%;max-height:80%}.x{position:absolute;right:12px;top:8px;background:transparent;font-size:42px}.nav{position:absolute;bottom:15px}.count{position:absolute;bottom:62px;color:white}.preview{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}.preview img{width:100%;height:70px;object-fit:cover}
+</style></head><body>
+<header><h1>📚 My Learning Library</h1><div>Organize topics into daily lessons.</div></header><main>
+<section class="panel"><h2>Create topic</h2><input id="topicName" placeholder="e.g. ETF Arbitrage"><select id="topicCat"><option>Programming</option><option>Finance</option><option>AI</option><option>Trading</option><option>Other</option></select><button id="create">➕ Create topic</button></section>
+<section class="panel"><input id="search" placeholder="🔎 Search topics"><select id="filter"><option value="">All categories</option><option>Programming</option><option>Finance</option><option>AI</option><option>Trading</option><option>Other</option></select></section>
+<div id="grid"></div></main>
 
-<div id="viewer" class="viewer"><button id="close" class="close" type="button" aria-label="Close screenshot">×</button><img id="big"><div id="count" class="count"></div><div class="nav"><button id="prev">← Previous</button><button id="next">Next →</button></div></div>
-
-<div id="modal" class="modal"><div class="modalbox"><h2>✏️ Edit learning</h2>
-<input id="editTitle"><select id="editCategory"><option>Programming</option><option>Finance</option><option>AI</option><option>Trading</option><option>Other</option></select>
-<h3>Current screenshots</h3><div id="editGrid" class="editgrid"></div>
-<h3>Add more screenshots</h3><input id="morePhotos" type="file" accept="image/*" multiple>
-<div><button id="update">Save changes</button><button class="secondary" id="cancel">Cancel</button></div>
-</div></div>
+<div id="topicModal" class="modal"><div class="box"><h2 id="topicTitle"></h2><button id="addLesson">➕ Add lesson</button><div id="lessons"></div><button class="gray" id="closeTopic">Close</button></div></div>
+<div id="lessonModal" class="modal"><div class="box"><h2>Add lesson</h2><b id="lessonTopic"></b><input id="lessonName" placeholder="Lesson title"><textarea id="lessonNotes" placeholder="What did you learn today? (optional)"></textarea><b>Screenshots (optional)</b><input id="lessonFiles" type="file" accept="image/*" multiple><div id="preview" class="preview"></div><button id="saveLesson">Save lesson</button><button class="gray" id="cancelLesson">Cancel</button></div></div>
+<div id="viewer" class="viewer"><button id="closeViewer" class="x">×</button><img id="big"><div id="count" class="count"></div><div class="nav"><button id="prev">← Previous</button><button id="next">Next →</button></div></div>
 
 <script>
-const DB="learning-library-v2";
-let db,items=[],current=null,pos=0,editing=null;
-const req=indexedDB.open(DB,1);
-req.onupgradeneeded=e=>e.target.result.createObjectStore("items",{keyPath:"id",autoIncrement:true});
-req.onsuccess=e=>{db=e.target.result;load()};
-const st=(m="readonly")=>db.transaction("items",m).objectStore("items");
-function load(){st().getAll().onsuccess=e=>{items=e.target.result.sort((a,b)=>b.id-a.id);render()}}
-function readFiles(files){return Promise.all(files.map(f=>new Promise(resolve=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.readAsDataURL(f)})))}
-
-const photos=document.querySelector("#photos");
-photos.onchange=()=>{preview.innerHTML="";[...photos.files].forEach(f=>{const i=document.createElement("img");i.src=URL.createObjectURL(f);preview.appendChild(i)})};
-
-save.onclick=()=>{
- const title=document.querySelector("#title").value.trim(),files=[...photos.files];
- if(!title||!files.length)return alert("Enter a name and select at least one screenshot.");
- readFiles(files).then(images=>new Promise(resolve=>{
-   st("readwrite").add({title,category:category.value,images,date:new Date().toLocaleDateString()}).onsuccess=resolve;
- })).then(()=>{document.querySelector("#title").value="";photos.value="";preview.innerHTML="";load()});
-};
-
-function render(){
- const q=search.value.toLowerCase(),f=filter.value;
- const a=items.filter(x=>(!q||x.title.toLowerCase().includes(q))&&(!f||x.category===f));
- grid.innerHTML=a.length?a.map(x=>`<article class="card"><div class="thumbs">${
- x.images.slice(0,4).map((im,n)=>`<img src="${im}" data-open="${x.id}" data-pos="${n}">`).join("")
- }</div><div class="body"><h3>${esc(x.title)}</h3><small>${esc(x.category)} • ${x.images.length} screenshot${x.images.length===1?"":"s"}</small>
- <div class="actions"><button data-edit="${x.id}">✏️ Edit / add photos</button><button class="danger" data-del="${x.id}">Delete</button></div></div></article>`).join("")
- :'<div class="empty">No learning sets yet.</div>';
-}
+const DB="learning-library-v2";let db,items=[],active=null,imgs=[],pos=0;
+const req=indexedDB.open(DB,1);req.onupgradeneeded=e=>e.target.result.createObjectStore("items",{keyPath:"id",autoIncrement:true});req.onsuccess=e=>{db=e.target.result;load()};
+const store=(m="readonly")=>db.transaction("items",m).objectStore("items");
+function load(){store().getAll().onsuccess=e=>{items=e.target.result.sort((a,b)=>b.id-a.id);migrate();render()}}
+function migrate(){let changed=false;items.forEach(x=>{if(!x.lessons){x.lessons=[{id:Date.now()+Math.random(),title:x.title||"First lesson",notes:"",images:x.images||[],date:x.date||""}];delete x.images;changed=true}});if(changed){let s=store("readwrite");items.forEach(x=>s.put(x))}}
+function files(fs){return Promise.all([...fs].map(f=>new Promise(r=>{let x=new FileReader();x.onload=()=>r(x.result);x.readAsDataURL(f)})))}
+function esc(s){let d=document.createElement("div");d.textContent=s||"";return d.innerHTML}
+function render(){let q=search.value.toLowerCase(),f=filter.value,a=items.filter(x=>(!q||x.title.toLowerCase().includes(q))&&(!f||x.category==f));grid.innerHTML=a.length?a.map(x=>{let p=x.lessons.flatMap(l=>l.images||[]).slice(0,4);return `<article class="card"><div class="thumbs">${p.length?p.map(i=>`<img src="${i}">`).join(""):'<div style="height:115px;text-align:center;padding-top:20px">📝<br>No pictures</div>'}</div><div class="body"><h3>${esc(x.title)}</h3><small>${esc(x.category)} • ${x.lessons.length} lesson${x.lessons.length==1?"":"s"}</small><br><button data-open="${x.id}">📖 Open</button><button data-add="${x.id}">➕ Add lesson</button></div></article>`}).join(""):'<div class="panel">No topics yet.</div>'}
+create.onclick=()=>{let n=topicName.value.trim();if(!n)return alert("Enter a topic name.");store("readwrite").add({title:n,category:topicCat.value,lessons:[],date:new Date().toLocaleDateString()}).onsuccess=()=>{topicName.value="";load()}}
 search.oninput=render;filter.onchange=render;
-
-grid.onclick=e=>{
- const im=e.target.closest("[data-open]"),ed=e.target.closest("[data-edit]"),del=e.target.closest("[data-del]");
- if(im){current=items.find(x=>x.id==im.dataset.open);pos=+im.dataset.pos;show()}
- if(ed)openEdit(+ed.dataset.edit);
- if(del&&confirm("Delete this learning set?"))st("readwrite").delete(+del.dataset.del).onsuccess=load;
-};
-
-function show(){big.src=current.images[pos];count.textContent=`${pos+1} / ${current.images.length}`;viewer.style.display="flex"}
-prev.onclick=()=>{pos=(pos-1+current.images.length)%current.images.length;show()};
-next.onclick=()=>{pos=(pos+1)%current.images.length;show()};
-function closeViewer(){document.getElementById("viewer").style.display="none";current=null;}
-document.getElementById("close").addEventListener("click",function(e){e.preventDefault();e.stopPropagation();closeViewer();});
-document.getElementById("viewer").addEventListener("click",function(e){if(e.target===this)closeViewer();});
-document.addEventListener("keydown",function(e){if(e.key==="Escape")closeViewer();});
-
-function openEdit(id){
- editing=items.find(x=>x.id===id);
- editTitle.value=editing.title;editCategory.value=editing.category;
- drawEditImages();modal.style.display="flex";
-}
-function drawEditImages(){
- editGrid.innerHTML=editing.images.map((im,i)=>`<div class="edititem"><img src="${im}"><button class="danger" data-remove="${i}">Remove</button></div>`).join("");
-}
-editGrid.onclick=e=>{
- const b=e.target.closest("[data-remove]");if(!b)return;
- if(editing.images.length<=1)return alert("Keep at least one screenshot.");
- editing.images.splice(+b.dataset.remove,1);drawEditImages();
-};
-cancel.onclick=()=>{modal.style.display="none";editing=null};
-update.onclick=()=>{
- const files=[...morePhotos.files];
- readFiles(files).then(newImages=>{
-   editing.title=editTitle.value.trim()||editing.title;
-   editing.category=editCategory.value;
-   editing.images=editing.images.concat(newImages);
-   return new Promise(resolve=>st("readwrite").put(editing).onsuccess=resolve);
- }).then(()=>{morePhotos.value="";modal.style.display="none";editing=null;load()});
-};
-function esc(s){const d=document.createElement("div");d.textContent=s;return d.innerHTML}
-render();
+grid.onclick=e=>{let o=e.target.closest("[data-open]"),a=e.target.closest("[data-add]");if(o)openTopic(+o.dataset.open);if(a)openLesson(+a.dataset.add)}
+function openTopic(id){active=items.find(x=>x.id==id);topicTitle.textContent="📖 "+active.title;drawLessons();topicModal.style.display="flex"}
+function drawLessons(){lessons.innerHTML=active.lessons.length?active.lessons.map((l,i)=>`<div class="lesson"><h3>${esc(l.title||"Lesson")}</h3><small>${esc(l.date||"")}</small>${l.notes?`<p>${esc(l.notes)}</p>`:""}${(l.images||[]).length?`<div class="pics">${l.images.map((im,n)=>`<img src="${im}" data-img="${i}" data-pos="${n}">`).join("")}</div>`:""}<button class="red" data-del="${i}">Delete lesson</button></div>`).join(""):'<p>No lessons yet. Add your first lesson.</p>'}
+addLesson.onclick=()=>openLesson(active.id);closeTopic.onclick=()=>topicModal.style.display="none";
+function openLesson(id){active=items.find(x=>x.id==id);lessonTopic.textContent="Topic: "+active.title;lessonName.value="";lessonNotes.value="";lessonFiles.value="";preview.innerHTML="";lessonModal.style.display="flex"}
+lessonFiles.onchange=()=>{preview.innerHTML="";[...lessonFiles.files].forEach(f=>{let i=document.createElement("img");i.src=URL.createObjectURL(f);preview.appendChild(i)})}
+saveLesson.onclick=()=>{let n=lessonName.value.trim()||"Lesson "+(active.lessons.length+1);files(lessonFiles.files).then(im=>{active.lessons.push({id:Date.now()+Math.random(),title:n,notes:lessonNotes.value.trim(),images:im,date:new Date().toLocaleDateString()});return new Promise(r=>store("readwrite").put(active).onsuccess=r)}).then(()=>{lessonModal.style.display="none";load();openTopic(active.id)})}
+cancelLesson.onclick=()=>lessonModal.style.display="none";
+lessons.onclick=e=>{let im=e.target.closest("[data-img]"),d=e.target.closest("[data-del]");if(im){let l=active.lessons[+im.dataset.img];imgs=l.images;pos=+im.dataset.pos;show()}if(d&&confirm("Delete this lesson?")){active.lessons.splice(+d.dataset.del,1);store("readwrite").put(active).onsuccess=()=>{load();openTopic(active.id)}}}
+function show(){big.src=imgs[pos];count.textContent=(pos+1)+" / "+imgs.length;viewer.style.display="flex"}
+closeViewer.onclick=()=>viewer.style.display="none";prev.onclick=()=>{pos=(pos-1+imgs.length)%imgs.length;show()};next.onclick=()=>{pos=(pos+1)%imgs.length;show()};render();
 </script></body></html>
