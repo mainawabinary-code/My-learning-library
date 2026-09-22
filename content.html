@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Learning Library</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f3f5f7;color:#17202a}
+header{background:#17202a;color:#fff;padding:20px}
+.container{max-width:900px;margin:auto;padding:18px}
+h1{margin:0 0 6px;font-size:24px} p{margin:0;color:#cbd5e1}
+.box,.card{background:#fff;border-radius:14px;padding:16px;box-shadow:0 2px 10px #0001}
+.box{margin-bottom:18px}
+input[type=text]{width:100%;padding:13px;border:1px solid #ccd3da;border-radius:9px;font-size:16px;margin:8px 0 12px}
+input[type=file]{display:block;width:100%;margin:10px 0 14px;font-size:15px}
+button{border:0;border-radius:9px;padding:12px 16px;background:#2563eb;color:#fff;font-size:15px;cursor:pointer}
+button:active{transform:scale(.98)}
+.search{margin:18px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.card{padding:0;overflow:hidden}
+.card img{width:100%;height:180px;object-fit:cover;display:block;cursor:pointer;background:#e5e7eb}
+.cardbody{padding:14px}
+.card h3{margin:0 0 5px;font-size:17px}
+.card small{color:#667085}
+.delete{background:#dc2626;margin-top:10px}
+.empty{text-align:center;color:#667085;padding:30px}
+#preview{display:none;width:100%;max-height:300px;object-fit:contain;border-radius:10px;margin:10px 0}
+.viewer{display:none;position:fixed;inset:0;background:#000d;z-index:10;align-items:center;justify-content:center;padding:15px}
+.viewer img{max-width:96%;max-height:90%;object-fit:contain}
+.close{position:absolute;top:10px;right:20px;color:#fff;font-size:38px}
+</style>
+</head>
+<body>
+<header>
+<div class="container">
+<h1>📚 My Learning Library</h1>
+<p>Save screenshots of what you have learned.</p>
+</div>
+</header>
+
+<div class="container">
+<div class="box">
+<h2>Add a screenshot</h2>
+
+<input id="name" type="text" placeholder="Name it — e.g. HTML Forms">
+
+<label><b>Choose screenshot/photo</b></label>
+<input id="photo" type="file" accept="image/*" capture="environment">
+
+<img id="preview">
+
+<button onclick="addItem()">➕ Save to my library</button>
+</div>
+
+<input id="search" class="search" type="text"
+placeholder="🔎 Search your learning..."
+oninput="render()">
+
+<div id="grid" class="grid"></div>
+</div>
+
+<div id="viewer" class="viewer" onclick="closeViewer()">
+<div class="close">×</div>
+<img id="bigImage" onclick="event.stopPropagation()">
+</div>
+
+<script>
+let items=[];
+try{items=JSON.parse(localStorage.getItem("learningLibrary")||"[]")}catch(e){items=[]}
+
+const photo=document.getElementById("photo");
+photo.addEventListener("change",function(){
+  const file=this.files[0];
+  if(!file)return;
+  const preview=document.getElementById("preview");
+  preview.src=URL.createObjectURL(file);
+  preview.style.display="block";
+});
+
+function addItem(){
+  const name=document.getElementById("name").value.trim();
+  const file=document.getElementById("photo").files[0];
+
+  if(!name){
+    alert("Give the screenshot a name first.");
+    return;
+  }
+  if(!file){
+    alert("Choose a screenshot/photo first.");
+    return;
+  }
+
+  const reader=new FileReader();
+  reader.onload=function(e){
+    items.unshift({
+      id:Date.now(),
+      name:name,
+      image:e.target.result,
+      date:new Date().toLocaleDateString()
+    });
+
+    try{
+      localStorage.setItem("learningLibrary",JSON.stringify(items));
+    }catch(err){
+      alert("The image is too large for browser storage. Try a smaller screenshot.");
+      items.shift();
+      return;
+    }
+
+    document.getElementById("name").value="";
+    document.getElementById("photo").value="";
+    document.getElementById("preview").style.display="none";
+    render();
+  };
+  reader.readAsDataURL(file);
+}
+
+function deleteItem(id){
+  if(confirm("Delete this screenshot?")){
+    items=items.filter(x=>x.id!==id);
+    localStorage.setItem("learningLibrary",JSON.stringify(items));
+    render();
+  }
+}
+
+function showImage(src){
+  document.getElementById("bigImage").src=src;
+  document.getElementById("viewer").style.display="flex";
+}
+
+function closeViewer(){
+  document.getElementById("viewer").style.display="none";
+}
+
+function render(){
+  const grid=document.getElementById("grid");
+  const q=document.getElementById("search").value.toLowerCase();
+
+  const filtered=items.filter(x=>x.name.toLowerCase().includes(q));
+
+  if(!filtered.length){
+    grid.innerHTML='<div class="empty">📚 Nothing saved yet.<br>Add your first learning screenshot above.</div>';
+    return;
+  }
+
+  grid.innerHTML=filtered.map(x=>`
+    <div class="card">
+      <img src="${x.image}" onclick="showImage('${x.image}')">
+      <div class="cardbody">
+        <h3>${escapeHtml(x.name)}</h3>
+        <small>Added ${x.date}</small><br>
+        <button class="delete" onclick="deleteItem(${x.id})">Delete</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+function escapeHtml(text){
+  const d=document.createElement("div");
+  d.textContent=text;
+  return d.innerHTML;
+}
+
+render();
+</script>
+</body>
+</html>
